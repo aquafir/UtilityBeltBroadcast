@@ -82,7 +82,7 @@ namespace UtilityBeltBroadcast
                 message = headerBytes;
             }
             SendQueue.Enqueue(message);
-            Logger.Debug($"\tEnqueued {header.Type} message of size {header.BodySize}");
+            //Logger.Debug($"\tEnqueued {header.Type} message of size {header.BodySize}");
         }
 
         /// <summary>
@@ -165,7 +165,6 @@ namespace UtilityBeltBroadcast
                                     });
                                     continue;
                                 case MessageHeaderType.KeepAlive:
-                                    Logger.Debug("KEEP ALIVE RECEIVED");
                                     lastKeepAliveRecv = DateTime.UtcNow;
                                     RunOnMainThread(() => {
                                         OnMessageReceived?.Invoke(this, new OnMessageEventArgs(incomingMessageHeader, null));

@@ -161,10 +161,10 @@ namespace UtilityBeltBroadcast
                 {
                     lastClientCleanup = DateTime.UtcNow;
                     var clients = Clients.ToArray();
-                    Logger.Debug($"Client Cleanup: {clients.Length} clients");
+                    //Logger.Debug($"Client Cleanup: {clients.Length} clients");
                     foreach (var client in clients)
                     {
-                        Logger.Debug($"\tLast update: {client.Value.LastUpdate}  - {(client.Value.LastUpdate - DateTime.UtcNow).TotalMilliseconds} ms lapsed");
+                        //Logger.Debug($"\tLast update: {client.Value.LastUpdate}  - {(client.Value.LastUpdate - DateTime.UtcNow).TotalMilliseconds} ms lapsed");
                         if (DateTime.UtcNow - client.Value.LastUpdate > TimeSpan.FromSeconds(15))
                         {
                             Logger.WriteToChat($"Client Timed Out: {client.Value.WorldName}//{client.Value.Name}");

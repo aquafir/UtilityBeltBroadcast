@@ -78,7 +78,7 @@ namespace UtilityBeltBroadcast
 
         private void BackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            Logger.Debug("Background worker doing work");
+            //Logger.Debug("Background worker doing work");
             //BackgroundWorker worker = sender as BackgroundWorker;
             //while (worker.CancellationPending != true)
             while (true)
@@ -100,7 +100,7 @@ namespace UtilityBeltBroadcast
                     {
                         if (DateTime.UtcNow - lastKeepAliveSent > TimeSpan.FromMilliseconds(3000))
                         {
-                            Logger.Debug($"Sending keepalive from {ClientId}");
+                            //Logger.Debug($"Sending keepalive from {ClientId}");
                             SendMessageBytes(new MessageHeader()
                             {
                                 SendingClientId = ClientId,
