@@ -6,6 +6,14 @@
     <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="CommandBroadcastMessage.cs" />
     <Compile Remove="HotReloadSerializationBinder.cs" />
@@ -21,14 +29,17 @@
     <Reference Include="UBLoader">
       <HintPath>C:\Games\Decal Plugins\UtilityBelt\UBLoader.dll</HintPath>
       <CopyLocal>True</CopyLocal>
+      <Private>true</Private>
     </Reference>
     <Reference Include="UBNetworking">
       <HintPath>C:\Games\Decal Plugins\UtilityBelt\UBNetworking.dll</HintPath>
       <CopyLocal>True</CopyLocal>
+      <Private>true</Private>
     </Reference>
     <Reference Include="UtilityBelt">
       <HintPath>C:\Games\Decal Plugins\UtilityBelt\UtilityBelt.dll</HintPath>
       <CopyLocal>True</CopyLocal>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 

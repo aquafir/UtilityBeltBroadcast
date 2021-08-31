@@ -1,19 +1,6 @@
 ﻿using System;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization;
-using System.IO;
-using System.Text;
-using UtilityBelt.Tools;
-using UtilityBelt;
-using UBNetworking;
-using UBNetworking.Lib;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using System.IO.Pipes;
-using System.Text.RegularExpressions;
 using System.Linq;
 using ZetaIpc.Runtime.Server;
 using ZetaIpc.Runtime.Client;
@@ -26,24 +13,62 @@ namespace UtilityBeltBroadcast
 		private static ExNetworking network;
 		static void Main(string[] args)
 		{
+			args = new string[] { "/mt jump" };
 			bool firstRun;
 			using var mutex = new Mutex(true, typeof(Program).Namespace, out firstRun);
 
 			//If the broadcaster is already running, pass the args as a chat command
-			if (!firstRun)
+			if (firstRun)
 			{
-				if (args.Length > 0)
-				{
-					var command = String.Join(" ", args);
-					var c = new IpcClient();
-					c.Initialize(IpcPort);
-					var rep = c.Send(command);
-					//Console.WriteLine("Received: " + rep);
-				}
-				return;
+				StartIPC();
+				StartUBNeworking("Broadcaster", "BC", "Duskfall");
 			}
 
-			//IPC
+			//Process commands if there are any
+			ProcessCommandline(args);
+
+			Console.ReadLine();
+		}
+
+		private static void ProcessCommandline(string[] args)
+		{
+			if (args.Length > 0)
+			{
+				int retries = 0;
+				while(network == null || network.Clients.Count() == 0)
+				{
+					Thread.Sleep(250);
+					if (retries++ > 20)
+					{
+						Logger.Error("Failed to send command.  Not connected to UBNetServer.");
+						return;
+					}
+				}
+				var command = String.Join(" ", args);
+				var c = new IpcClient();
+				c.Initialize(IpcPort);
+				var rep = c.Send(command);
+				//Console.WriteLine("Received: " + rep);
+			}
+		}
+
+		private static void StartUBNeworking(string name, string character, string world)
+		{
+			Task.Factory.StartNew(() =>
+			{
+				network = new ExNetworking(name, character, world);
+				network.Init();
+
+				while (true)
+				{
+					network.NetworkLoop();
+					Thread.Sleep(100);
+				}
+			});
+		}
+
+		private static void StartIPC()
+		{
 			var s = new IpcServer();
 			s.Start(IpcPort);
 			Logger.Debug($"Started IPC server on port {s.Port}");
@@ -55,22 +80,6 @@ namespace UtilityBeltBroadcast
 				//args.Response = "OK";
 				args.Handled = true;
 			};
-
-			//Otherwise start up networking and connect to a running UB server
-			Task.Factory.StartNew(() =>
-			{
-				network = new ExNetworking("Broadcaster", "BC", "Duskfall");
-				network.Init();
-
-				while (true)
-				{
-					network.NetworkLoop();
-					Thread.Sleep(100);
-					//network.DoBroadcast(network.Clients.Select(c => c.Value), "/mt jump", 0);
-				}
-			});
-
-			Console.ReadLine();
 		}
 	}
 }

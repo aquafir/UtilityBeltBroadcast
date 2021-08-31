@@ -37,12 +37,12 @@ namespace UtilityBeltBroadcast
         #region Config
         public readonly string ServerHost = "127.0.0.1";
         public readonly int ServerPort = 42163;
-        //public readonly CharacterState<ObservableCollection<string>> Tags = new CharacterState<ObservableCollection<string>>(new ObservableCollection<string>());
-        #endregion Config
+		//public readonly CharacterState<ObservableCollection<string>> Tags = new CharacterState<ObservableCollection<string>>(new ObservableCollection<string>());
+		#endregion Config
 
-        #region Commands
-        #region /ub bc <millisecondDelay> <command>
-        public void DoBroadcast(string _, Match args)
+		#region Commands
+		#region /ub bc <millisecondDelay> <command>
+		public void DoBroadcast(string _, Match args)
         {
             var command = args.Groups["command"].Value;
             int delay = 0;
@@ -167,7 +167,7 @@ namespace UtilityBeltBroadcast
                         //Logger.Debug($"\tLast update: {client.Value.LastUpdate}  - {(client.Value.LastUpdate - DateTime.UtcNow).TotalMilliseconds} ms lapsed");
                         if (DateTime.UtcNow - client.Value.LastUpdate > TimeSpan.FromSeconds(15))
                         {
-                            Logger.WriteToChat($"Client Timed Out: {client.Value.WorldName}//{client.Value.Name}");
+                            //Logger.WriteToChat($"Client Timed Out: {client.Value.WorldName}//{client.Value.Name}");
                             Clients.Remove(client.Key);
                         }
                     }
@@ -181,39 +181,39 @@ namespace UtilityBeltBroadcast
             catch (Exception ex) { Logger.LogException(ex); }
         }
 
-  //      private void Tags_Changed(object sender, SettingChangedEventArgs e)
+		//private void Tags_Changed(object sender, SettingChangedEventArgs e)
 		//{
 		//	SendObject(new ClientInfoMessage(CharacterName, WorldName, Tags.Value.ToList()));
 		//}
 
 
 		//private void Core_RenderFrame(object sender, EventArgs e)
-  //      {
-  //          try
-  //          {
-  //              if (DateTime.UtcNow - lastClientCleanup > TimeSpan.FromSeconds(3))
-  //              {
-  //                  lastClientCleanup = DateTime.UtcNow;
-  //                  var clients = Clients.ToArray();
-  //                  foreach (var client in clients)
-  //                  {
-  //                      if (DateTime.UtcNow - client.Value.LastUpdate > TimeSpan.FromSeconds(15))
-  //                      {
-  //                          //Logger.WriteToChat($"Client Timed Out: {client.Value.WorldName}//{client.Value.Name}");
-  //                          Clients.Remove(client.Key);
-  //                      }
-  //                  }
-  //              }
+		//      {
+		//          try
+		//          {
+		//              if (DateTime.UtcNow - lastClientCleanup > TimeSpan.FromSeconds(3))
+		//              {
+		//                  lastClientCleanup = DateTime.UtcNow;
+		//                  var clients = Clients.ToArray();
+		//                  foreach (var client in clients)
+		//                  {
+		//                      if (DateTime.UtcNow - client.Value.LastUpdate > TimeSpan.FromSeconds(15))
+		//                      {
+		//                          //Logger.WriteToChat($"Client Timed Out: {client.Value.WorldName}//{client.Value.Name}");
+		//                          Clients.Remove(client.Key);
+		//                      }
+		//                  }
+		//              }
 
-  //              while (GameThreadActionQueue.TryDequeue(out Action action))
-  //              {
-  //                  action.Invoke();
-  //              }
-  //          }
-  //          catch (Exception ex) { Logger.LogException(ex); }
-  //      }
+		//              while (GameThreadActionQueue.TryDequeue(out Action action))
+		//              {
+		//                  action.Invoke();
+		//              }
+		//          }
+		//          catch (Exception ex) { Logger.LogException(ex); }
+		//      }
 
-        private void StartClient()
+		private void StartClient()
         {
             if (ubNet != null)
             {

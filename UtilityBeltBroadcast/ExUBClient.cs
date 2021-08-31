@@ -78,7 +78,7 @@ namespace UtilityBeltBroadcast
 
         private void BackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            //Logger.Debug("Background worker doing work");
+            Logger.Debug("Background worker doing work");
             //BackgroundWorker worker = sender as BackgroundWorker;
             //while (worker.CancellationPending != true)
             while (true)
