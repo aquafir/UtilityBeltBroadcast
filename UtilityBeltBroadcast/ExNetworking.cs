@@ -13,6 +13,7 @@ using UBNetworking.Messages;
 using UtilityBelt.Lib.Networking;
 using UtilityBelt.Lib.Networking.Messages;
 using UBLoader.Lib.Settings;
+using System.Threading;
 
 namespace UtilityBeltBroadcast
 {
@@ -60,8 +61,8 @@ namespace UtilityBeltBroadcast
 
             //Logger.WriteToChat($"Broadcasting command to all clients: \"{command}\" with delay inbetween of {delay}ms");
             DoBroadcast(Clients.Select(c => c.Value), command, delay);
-            if (Logger.Debugging)
-                Logger.Debug($"Sent to clients: {string.Join(", ", Clients.Select(c => c.Value.Name).ToArray())}");
+            //if (Logger.Debugging)
+                //Logger.Debug($"Sent to clients: {string.Join(", ", Clients.Select(c => c.Value.Name).ToArray())}");
         }
 
         public void DoBroadcast(IEnumerable<ClientInfo> clients, string command, int delay)
@@ -103,8 +104,8 @@ namespace UtilityBeltBroadcast
 
             //Logger.WriteToChat($"Broadcasting command to clients with tags ({String.Join(",", tags)}): \"{command}\" with delay inbetween of {delay}ms");
             DoBroadcast(clients, command, delay);
-            if (Logger.Debugging)
-                Logger.Debug($"Sent to clients: {string.Join(", ", clients.Select(c => c.Name).ToArray())}");
+            //if (Logger.Debugging)
+                //Logger.Debug($"Sent to clients: {string.Join(", ", clients.Select(c => c.Name).ToArray())}");
         }
         #endregion /ub bc <millisecondDelay> <command>
         #region /ub netclients
@@ -124,13 +125,13 @@ namespace UtilityBeltBroadcast
                         {
                             extra.Append($"{prop.Name}:{prop.GetValue(kv.Value, null)},");
                         }
-                        Logger.Debug(extra.ToString());
+                        //Logger.Debug(extra.ToString());
                     }
                     showedClients = true;
                 }
             }
-            if (!showedClients)
-                Logger.WriteToChat($"No net clients to show");
+            //if (!showedClients)
+                //Logger.WriteToChat($"No net clients to show");
         }
         #endregion /ub bc <millisecondDelay> <command>
         #endregion Commands
@@ -149,9 +150,10 @@ namespace UtilityBeltBroadcast
         public void Init()
         {
             StartClient();
-			//UB.Core.RenderFrame += Core_RenderFrame;
-			//Tags.Changed += Tags_Changed;
-		}
+            //Program.cs calls NetworkLoop to replace Core_RenderFrame
+            //UB.Core.RenderFrame += Core_RenderFrame;
+            //Tags.Changed += Tags_Changed;
+        }
 
         public void NetworkLoop()
         {
@@ -161,10 +163,8 @@ namespace UtilityBeltBroadcast
                 {
                     lastClientCleanup = DateTime.UtcNow;
                     var clients = Clients.ToArray();
-                    //Logger.Debug($"Client Cleanup: {clients.Length} clients");
                     foreach (var client in clients)
                     {
-                        //Logger.Debug($"\tLast update: {client.Value.LastUpdate}  - {(client.Value.LastUpdate - DateTime.UtcNow).TotalMilliseconds} ms lapsed");
                         if (DateTime.UtcNow - client.Value.LastUpdate > TimeSpan.FromSeconds(15))
                         {
                             //Logger.WriteToChat($"Client Timed Out: {client.Value.WorldName}//{client.Value.Name}");
@@ -179,6 +179,38 @@ namespace UtilityBeltBroadcast
                 }
             }
             catch (Exception ex) { Logger.LogException(ex); }
+            //try
+            //{
+            //    if (DateTime.UtcNow - lastClientCleanup > TimeSpan.FromSeconds(3)) {
+
+            //        lastClientCleanup = DateTime.UtcNow;
+            //        var clients = Clients.ToArray();
+            //        //Logger.Debug($"Client Cleanup: {clients.Length} clients");
+            //        //TODO: Fix hacky keepalive that checks keep alives
+            //        Logger.Debug($"{ubNet.ClientId,-10}{Clients.ContainsKey(ubNet.ClientId),-10}{Clients.ContainsKey(ubNet.ClientId),-10}");
+            //        if (Clients.ContainsKey(ubNet.ClientId) && (DateTime.UtcNow - ubNet.lastKeepAliveRecv > TimeSpan.FromSeconds(3)))
+            //        {
+            //            Logger.Debug($"Keeping client {ubNet.ClientId} alive ({clients.Count()}");
+            //            Clients[ubNet.ClientId].LastUpdate = DateTime.UtcNow;
+            //            Logger.Debug($"K2 {(Clients[ubNet.ClientId].LastUpdate - DateTime.UtcNow).TotalMilliseconds} ms lapsed");
+            //        }
+
+            //        foreach (var client in clients)
+            //        {
+            //            Logger.Debug($"\t{client.Value.Name} ({client.Value.ClientId}) last update: {client.Value.LastUpdate}  - {(client.Value.LastUpdate - DateTime.UtcNow).TotalMilliseconds} ms lapsed");
+            //            if (DateTime.UtcNow - client.Value.LastUpdate > TimeSpan.FromSeconds(15))
+            //            {
+            //                Logger.WriteToChat($"Client Timed Out: {client.Value.WorldName}//{client.Value.Name}");
+            //                Clients.Remove(client.Key);
+            //            }
+            //        }
+            //    }
+            //    while (GameThreadActionQueue.TryDequeue(out Action action))
+            //    {
+            //        action.Invoke();
+            //    }
+            //}
+            //catch (Exception ex) { Logger.LogException(ex); }
         }
 
 		//private void Tags_Changed(object sender, SettingChangedEventArgs e)
@@ -276,6 +308,7 @@ namespace UtilityBeltBroadcast
             var client = GetClient(header);
             if (client == null)
                 return;
+            //Logger.WriteToChat($"Got ClientInfo from: {client.ClientId} {message.CharacterName}//{message.WorldName}");
             //Logger.WriteToChat($"Got ClientInfo from: {client.ClientId} {message.CharacterName}//{message.WorldName} ({(message.Tags == null ? "null" : String.Join(",", message.Tags.ToArray()))})");
             if (message.Tags != null)
                 client.Tags = message.Tags;
@@ -312,8 +345,20 @@ namespace UtilityBeltBroadcast
             {
                 case MessageHeaderType.Serialized:
                     if (Clients.TryGetValue(e.Header.SendingClientId, out ClientInfo client))
+                    {
+                        //Logger.Debug($"Serialized:: {client.ClientId} - {client.Name} - {client.LastUpdate}");
                         client.LastUpdate = DateTime.UtcNow;
+                    }
                     break;
+                case MessageHeaderType.KeepAlive:
+                    if (Clients.TryGetValue(e.Header.SendingClientId, out ClientInfo c))
+                    {
+                        //Logger.Debug($"KeepAlive:: {c.ClientId} - {c.Name} - {c.LastUpdate}");
+                        c.LastUpdate = DateTime.UtcNow;
+                    }
+                    break;
+
+
             }
         }
 
@@ -330,7 +375,7 @@ namespace UtilityBeltBroadcast
         private void Handle_LoginMessage(MessageHeader header, LoginMessage message)
         {
             var client = GetClient(header);
-            //Logger.WriteToChat($"\tGot loginmessage from: {client.ClientId} {message.Name}//{message.WorldName} ({(message.Tags == null ? "null" : String.Join(",", message.Tags.ToArray()))})");
+           //Logger.WriteToChat($"\tGot loginmessage from: {client.ClientId} {message.Name}//{message.WorldName} ({(message.Tags == null ? "null" : String.Join(",", message.Tags.ToArray()))})");
             client.Name = message.Name;
             client.WorldName = message.WorldName;
             if (message.Tags != null)

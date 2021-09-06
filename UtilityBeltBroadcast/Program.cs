@@ -10,61 +10,65 @@ namespace UtilityBeltBroadcast
 	class Program
 	{
 		private const int IpcPort = 51204;
+		private static bool firstRun;
+		private static readonly string EXIT_STRING = "exit-ubb";
 		private static ExNetworking network;
+		private static IpcServer ipcServer;
 		static void Main(string[] args)
 		{
-			args = new string[] { "/mt jump" };
-			bool firstRun;
 			using var mutex = new Mutex(true, typeof(Program).Namespace, out firstRun);
 
-			//If the broadcaster is already running, pass the args as a chat command
+			//Start UBNetworkServer and UBB's IPC server if needed
 			if (firstRun)
 			{
-				StartIPC();
-				StartUBNeworking("Broadcaster", "BC", "Duskfall");
+				Logger.Debug("Starting broadcaster");
+				Task.Factory.StartNew(() =>
+				{
+					StartIPC();
+					StartUBNeworking("Broadcaster", "BC", "Duskfall");
+				});
+				ProcessCommandline(args);
+
+				//TODO: fix lazy way of keeping host process alive
+				while (true)
+					Thread.Yield();
 			}
-
-			//Process commands if there are any
 			ProcessCommandline(args);
-
-			Console.ReadLine();
 		}
 
 		private static void ProcessCommandline(string[] args)
 		{
-			if (args.Length > 0)
+			//Stall for connection
+			if (args.Length > 0 && firstRun)
 			{
 				int retries = 0;
-				while(network == null || network.Clients.Count() == 0)
+				while (network == null || network.Clients.Count() == 0)
 				{
-					Thread.Sleep(250);
+					Thread.Sleep(1000);
 					if (retries++ > 20)
 					{
 						Logger.Error("Failed to send command.  Not connected to UBNetServer.");
 						return;
 					}
 				}
-				var command = String.Join(" ", args);
-				var c = new IpcClient();
-				c.Initialize(IpcPort);
-				var rep = c.Send(command);
-				//Console.WriteLine("Received: " + rep);
 			}
+			//Broadcast command
+			var command = String.Join(" ", args);
+			var c = new IpcClient();
+			c.Initialize(IpcPort);
+			var rep = c.Send(command);
 		}
 
 		private static void StartUBNeworking(string name, string character, string world)
 		{
-			Task.Factory.StartNew(() =>
-			{
-				network = new ExNetworking(name, character, world);
-				network.Init();
+			network = new ExNetworking(name, character, world);
+			network.Init();
 
-				while (true)
+			while (true)
 				{
 					network.NetworkLoop();
-					Thread.Sleep(100);
+					Thread.Sleep(200);
 				}
-			});
 		}
 
 		private static void StartIPC()
@@ -75,7 +79,13 @@ namespace UtilityBeltBroadcast
 
 			s.ReceivedRequest += (sender, args) =>
 			{
-				Logger.Debug($"Broadcasting command: {args.Request}");
+				if (string.Equals(args.Request, EXIT_STRING, StringComparison.InvariantCultureIgnoreCase))
+				{
+					Logger.Debug("Closing application.");
+					Environment.Exit(0);
+				}
+
+				//Logger.Debug($"Broadcasting command: {args.Request}");
 				network.DoBroadcast(network.Clients.Select(c => c.Value), args.Request, 0);
 				//args.Response = "OK";
 				args.Handled = true;

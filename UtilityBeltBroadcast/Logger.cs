@@ -8,7 +8,7 @@ namespace UtilityBeltBroadcast
 {
 	static class Logger
 	{
-		internal static readonly bool Debugging;
+		internal static readonly bool Debugging = false;
 
 		public static void Error(string msg)
 		{

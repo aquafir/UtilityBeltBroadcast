@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UBNetworking;
 using UBNetworking.Lib;
@@ -165,6 +167,7 @@ namespace UtilityBeltBroadcast
                                     });
                                     continue;
                                 case MessageHeaderType.KeepAlive:
+                                    //Logger.Debug($"Keeping {ClientId} alive: {DateTime.UtcNow} - {DateTime.UtcNow - lastKeepAliveRecv} lapsed");                                    
                                     lastKeepAliveRecv = DateTime.UtcNow;
                                     RunOnMainThread(() => {
                                         OnMessageReceived?.Invoke(this, new OnMessageEventArgs(incomingMessageHeader, null));
@@ -206,7 +209,7 @@ namespace UtilityBeltBroadcast
         {
             try
             {
-                while (TcpClient != null && TcpClient.Connected && SendQueue.Count > 0)
+				while (TcpClient != null && TcpClient.Connected && SendQueue.Count > 0)
                 {
                     byte[] bytesToSend = (byte[])SendQueue.Dequeue();
                     TcpClient.GetStream().Write(bytesToSend, 0, bytesToSend.Length);

@@ -26,6 +26,7 @@ namespace UtilityBeltBroadcast
 
         private double retrySeconds = 1;
         private DateTime lastRetry = DateTime.MinValue;
+        private readonly string UBNetServerPath = @"C:\Games\Decal Plugins\UtilityBelt\UBNetServer.exe";
 
         public ExUBClient(string host, int port, Action<string> log, Action<Action> runOnMainThread, SerializationBinder binder)
             : base(0, "local", log, runOnMainThread, binder)
@@ -78,7 +79,6 @@ namespace UtilityBeltBroadcast
 
         private void BackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            Logger.Debug("Background worker doing work");
             //BackgroundWorker worker = sender as BackgroundWorker;
             //while (worker.CancellationPending != true)
             while (true)
@@ -88,7 +88,7 @@ namespace UtilityBeltBroadcast
                     if (TcpClient == null && DateTime.UtcNow - lastRetry > TimeSpan.FromSeconds(retrySeconds))
                     {
                         retrySeconds *= 2;
-                        Logger.Debug($"Attempting to connect to {Host}:{Port}");
+                        //Logger.Debug($"Attempting to connect to {Host}:{Port}");
                         lastKeepAliveRecv = DateTime.UtcNow;
                         lastKeepAliveSent = DateTime.UtcNow;
                         var client = new TcpClient(Host, Port);
@@ -103,8 +103,9 @@ namespace UtilityBeltBroadcast
                             //Logger.Debug($"Sending keepalive from {ClientId}");
                             SendMessageBytes(new MessageHeader()
                             {
+                                //TargetClientId = 0,
                                 SendingClientId = ClientId,
-                                Type = MessageHeaderType.KeepAlive,                                
+                                Type = MessageHeaderType.KeepAlive,
                             }, new byte[] { });
                             lastKeepAliveSent = DateTime.UtcNow;
                         }
@@ -114,19 +115,44 @@ namespace UtilityBeltBroadcast
                 }
                 catch (SocketException ex)
                 {
-                    //Server is not launcher
+                    //Server is not launched
+                    TryLaunchServer();
                     Logger.LogException(ex);
                 }
                 catch (Exception ex) {
                     //LogAction?.Invoke(ex.ToString());
                     Logger.LogException(ex);
                 }
-                Thread.Sleep(15);
+                Thread.Sleep(1000);
             }
         }
         #endregion BackgroundWorker
 
-         protected override void Dispose(bool isDisposing)
+        private void TryLaunchServer()
+        {
+            using (var mutex = new Mutex(false, "com.UBNetServer.Instance"))
+            {
+                bool isAnotherInstanceOpen = !mutex.WaitOne(TimeSpan.Zero);
+                if (!isAnotherInstanceOpen)
+                {
+                    try
+                    {
+                        //string assemblyPath = System.Reflection.Assembly.GetAssembly(typeof(UBClient)).Location;
+                        //string assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+                        Process p = new Process();
+                        p.StartInfo.UseShellExecute = true;
+                        p.StartInfo.CreateNoWindow = true;
+                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        //p.StartInfo.FileName = Path.Combine(assemblyDirectory, "UBNetServer.exe");
+                        p.StartInfo.FileName = Path.Combine(UBNetServerPath);
+                        p.Start();
+                    }
+                    catch (Exception launchEx) { LogAction?.Invoke(launchEx.ToString()); }
+                }
+            }
+        }
+
+        protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
             OnMessageReceived -= BaseClient_OnMessageReceived;
