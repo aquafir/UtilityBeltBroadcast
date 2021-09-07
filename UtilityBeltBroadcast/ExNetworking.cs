@@ -38,12 +38,13 @@ namespace UtilityBeltBroadcast
         #region Config
         public readonly string ServerHost = "127.0.0.1";
         public readonly int ServerPort = 42163;
-		//public readonly CharacterState<ObservableCollection<string>> Tags = new CharacterState<ObservableCollection<string>>(new ObservableCollection<string>());
-		#endregion Config
+        //public readonly CharacterState<ObservableCollection<string>> Tags = new CharacterState<ObservableCollection<string>>(new ObservableCollection<string>());
+        public readonly ObservableCollection<string> Tags = new ObservableCollection<string>(new ObservableCollection<string>());
+        #endregion Config
 
-		#region Commands
-		#region /ub bc <millisecondDelay> <command>
-		public void DoBroadcast(string _, Match args)
+        #region Commands
+        #region /ub bc <millisecondDelay> <command>
+        public void DoBroadcast(string _, Match args)
         {
             var command = args.Groups["command"].Value;
             int delay = 0;
@@ -150,12 +151,18 @@ namespace UtilityBeltBroadcast
         public void Init()
         {
             StartClient();
-            //Program.cs calls NetworkLoop to replace Core_RenderFrame
-            //UB.Core.RenderFrame += Core_RenderFrame;
-            //Tags.Changed += Tags_Changed;
+			//Program.cs calls NetworkLoop to replace Core_RenderFrame
+			//UB.Core.RenderFrame += Core_RenderFrame;
+			//Tags.Changed += Tags_Changed;
+			Tags.CollectionChanged += Tags_CollectionChanged;
         }
 
-        public void NetworkLoop()
+		private void Tags_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+                SendObject(new ClientInfoMessage(CharacterName, WorldName, Tags.ToList()));
+		}
+
+		public void NetworkLoop()
         {
             try
             {
@@ -390,8 +397,7 @@ namespace UtilityBeltBroadcast
                 {
                     Name = CharacterName,
                     WorldName = WorldName,
-                    //Tags = Tags.Value.ToList()
-                    Tags = new List<string>()
+                    Tags = Tags.ToList()
                 });
             }
         }
@@ -429,8 +435,7 @@ namespace UtilityBeltBroadcast
                 {
                     Name = CharacterName,
                     WorldName = WorldName,
-                    //Tags = Tags.Value.ToList()
-                    Tags = new List<string>()
+                    Tags = Tags.ToList()
                 });
                 OnConnected?.Invoke(this, e);
             }

@@ -31,7 +31,7 @@ namespace UtilityBeltBroadcast
 
 				//TODO: fix lazy way of keeping host process alive
 				while (true)
-					Thread.Yield();
+					Thread.Sleep(10000);
 			}
 			ProcessCommandline(args);
 		}
@@ -67,7 +67,7 @@ namespace UtilityBeltBroadcast
 			while (true)
 				{
 					network.NetworkLoop();
-					Thread.Sleep(200);
+					Thread.Sleep(50);
 				}
 		}
 

@@ -123,7 +123,7 @@ namespace UtilityBeltBroadcast
                     //LogAction?.Invoke(ex.ToString());
                     Logger.LogException(ex);
                 }
-                Thread.Sleep(1000);
+                Thread.Sleep(50);
             }
         }
         #endregion BackgroundWorker

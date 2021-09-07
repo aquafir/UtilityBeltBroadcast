@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x86</Platforms>
     <ApplicationIcon />
@@ -30,17 +30,17 @@
   <ItemGroup>
     <Reference Include="UBLoader">
       <HintPath>C:\Games\Decal Plugins\UtilityBelt\UBLoader.dll</HintPath>
-      <CopyLocal>True</CopyLocal>
+      <CopyLocal>False</CopyLocal>
       <Private>true</Private>
     </Reference>
     <Reference Include="UBNetworking">
       <HintPath>C:\Games\Decal Plugins\UtilityBelt\UBNetworking.dll</HintPath>
-      <CopyLocal>True</CopyLocal>
+      <CopyLocal>False</CopyLocal>
       <Private>true</Private>
     </Reference>
     <Reference Include="UtilityBelt">
       <HintPath>C:\Games\Decal Plugins\UtilityBelt\UtilityBelt.dll</HintPath>
-      <CopyLocal>True</CopyLocal>
+      <CopyLocal>False</CopyLocal>
       <Private>true</Private>
     </Reference>
   </ItemGroup>
